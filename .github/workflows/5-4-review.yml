@@ -1,0 +1,62 @@
+name: Step 5-4
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/agentic-workflow
+
+permissions:
+  contents: read
+  actions: write
+  issues: write
+  id-token: write
+
+env:
+  CURRENT_STEP: '5-4'
+  STEP_FILE: '.github/steps/5-4-review.md'
+
+jobs:
+  find_exercise:
+    name: Find Exercise Issue
+    uses: skills/exercise-toolkit/.github/workflows/find-exercise-issue.yml@v0.4.0
+
+  post_review:
+    name: Post review and completion
+    needs: find_exercise
+    runs-on: ubuntu-latest
+    env:
+      ISSUE_URL: ${{ needs.find_exercise.outputs.issue-url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build comment - add step content
+        id: build-comment
+        uses: skills/action-text-variables@v2
+        with:
+          template-file: ${{ env.STEP_FILE }}
+          template-vars: |
+            login: ${{ github.actor }}
+            full_repo_name: ${{ github.repository }}
+
+      - name: Post completion and review
+        run: |
+          gh issue comment "$ISSUE_URL" --body "---
+
+          $STEP_CONTENT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STEP_CONTENT: ${{ steps.build-comment.outputs.updated-text }}
+
+      - name: Disable current workflow
+        run: gh workflow disable "Step ${{ env.CURRENT_STEP }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # call-scoreboard-completion:
+  #   name: Call Scoreboard Completion
+  #   needs: [post_review]
+  #   if: success()
+  #   uses: ./.github/workflows/scoreboard-post-completion.yml

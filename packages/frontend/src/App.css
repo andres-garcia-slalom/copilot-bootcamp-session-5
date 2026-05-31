@@ -1,0 +1,17 @@
+/* Minimal custom CSS - MUI handles most styling */
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.App {
+  animation: fadeIn 0.3s ease-in;
+}

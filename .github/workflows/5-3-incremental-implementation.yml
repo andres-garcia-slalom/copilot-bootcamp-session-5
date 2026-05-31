@@ -1,0 +1,98 @@
+name: Step 5-3
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/agentic-workflow
+
+permissions:
+  contents: read
+  actions: write
+  issues: write
+
+env:
+  CURRENT_STEP: '5-3'
+  NEXT_STEP: '5-4'
+  STEP_FILE: '.github/steps/5-3-incremental-implementation.md'
+
+jobs:
+  validate_step:
+    name: Validate Tests and Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run all tests
+        id: test
+        run: npm test
+
+      - name: Run backend lint
+        id: lint-backend
+        run: |
+          cd packages/backend
+          npm run lint
+          echo "Backend lint passed"
+
+      - name: Run frontend lint
+        id: lint-frontend
+        run: |
+          cd packages/frontend
+          npm run lint
+          echo "Frontend lint passed"
+
+  find_exercise:
+    name: Find Exercise Issue
+    uses: skills/exercise-toolkit/.github/workflows/find-exercise-issue.yml@v0.4.0
+
+  post_next_step:
+    name: Post next step
+    needs: [validate_step, find_exercise]
+    runs-on: ubuntu-latest
+    env:
+      ISSUE_URL: ${{ needs.find_exercise.outputs.issue-url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build comment - add step content
+        id: build-comment
+        uses: skills/action-text-variables@v2
+        with:
+          template-file: ${{ env.STEP_FILE }}
+          template-vars: |
+            login: ${{ github.actor }}
+            full_repo_name: ${{ github.repository }}
+
+      - name: Post next step content
+        run: |
+          gh issue comment "$ISSUE_URL" --body "---
+
+          $STEP_CONTENT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STEP_CONTENT: ${{ steps.build-comment.outputs.updated-text }}
+
+      - name: Disable current workflow
+        run: |
+          gh workflow disable "Step ${{ env.CURRENT_STEP }}" || echo "Failed to disable Step ${{ env.CURRENT_STEP }} or it's already disabled"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable next workflow
+        run: |
+          gh workflow enable "Step ${{ env.NEXT_STEP }}" || echo "Failed to enable Step ${{ env.NEXT_STEP }} or it's already enabled"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

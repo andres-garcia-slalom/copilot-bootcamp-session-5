@@ -1,0 +1,131 @@
+name: Step 5-1
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/agentic-workflow
+
+permissions:
+  contents: read
+  actions: write
+  issues: write
+
+env:
+  CURRENT_STEP: '5-1'
+  NEXT_STEP: '5-2'
+  STEP_FILE: '.github/steps/5-1-tdd-workflow.md'
+
+jobs:
+  find_exercise:
+    name: Find Exercise Issue
+    uses: skills/exercise-toolkit/.github/workflows/find-exercise-issue.yml@v0.4.0
+
+  post_next_step:
+    name: Post Step 5-1 instructions
+    runs-on: ubuntu-latest
+    needs: [find_exercise]
+    env:
+      ISSUE_URL: ${{ needs.find_exercise.outputs.issue-url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Step 5-0 Prerequisites
+        id: validate
+        run: |
+          echo "Checking for Step 5-0 completion..."
+
+          # Check for required files
+          MISSING_FILES=()
+
+          if [ ! -f ".github/copilot-instructions.md" ]; then
+            MISSING_FILES+=("copilot-instructions.md")
+          fi
+
+          if [ ! -f ".github/agents/tdd-developer.agent.md" ]; then
+            MISSING_FILES+=("tdd-developer.agent.md")
+          fi
+
+          if [ ! -f ".github/agents/code-reviewer.agent.md" ]; then
+            MISSING_FILES+=("code-reviewer.agent.md")
+          fi
+
+          if [ ! -f ".github/prompts/execute-step.prompt.md" ]; then
+            MISSING_FILES+=("execute-step.prompt.md")
+          fi
+
+          if [ ! -f ".github/prompts/validate-step.prompt.md" ]; then
+            MISSING_FILES+=("validate-step.prompt.md")
+          fi
+
+          if [ ! -f ".github/prompts/commit-and-push.prompt.md" ]; then
+            MISSING_FILES+=("commit-and-push.prompt.md")
+          fi
+
+          if [ ${#MISSING_FILES[@]} -gt 0 ]; then
+            echo "❌ Step 5-0 is incomplete. Missing files:"
+            printf '%s\n' "${MISSING_FILES[@]}"
+            echo "Please complete Step 5-0 before proceeding to Step 5-1."
+            echo "validation_failed=true" >> $GITHUB_OUTPUT
+          else
+            echo "✅ All Step 5-0 files present"
+            echo "validation_failed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post validation failure comment
+        if: steps.validate.outputs.validation_failed == 'true'
+        run: |
+          gh issue comment "$ISSUE_URL" --body "## ⚠️ Step 5-0 Not Complete
+
+          Step 5-1 requires the workflow automation infrastructure created in Step 5-0.
+
+          **Missing files detected**. Please:
+          1. Return to Step 5-0
+          2. Complete all activities (create agents, prompts, and instructions)
+          3. Commit and push your changes to \`feature/agentic-workflow\` branch
+          4. This workflow will run again automatically
+
+          The automation ensures you have the tools needed for Steps 5-1 through 5-3!"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Exit if validation failed
+        if: steps.validate.outputs.validation_failed == 'true'
+        run: exit 1
+
+      - name: Get response templates
+        uses: actions/checkout@v4
+        with:
+          repository: skills/exercise-toolkit
+          path: exercise-toolkit
+          ref: v0.4.0
+
+      - name: Build comment - add step content
+        id: build-comment
+        uses: skills/action-text-variables@v2
+        with:
+          template-file: ${{ env.STEP_FILE }}
+          template-vars: |
+            login: ${{ github.actor }}
+            full_repo_name: ${{ github.repository }}
+
+      - name: Post Step 5-1 content
+        run: |
+          gh issue comment "$ISSUE_URL" --body "$STEP_CONTENT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STEP_CONTENT: ${{ steps.build-comment.outputs.updated-text }}
+
+      - name: Disable current workflow
+        run: |
+          gh workflow disable "Step ${{ env.CURRENT_STEP }}" || echo "Failed to disable Step ${{ env.CURRENT_STEP }} or it's already disabled"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable next workflow
+        run: |
+          gh workflow enable "Step ${{ env.NEXT_STEP }}" || echo "Failed to enable Step ${{ env.NEXT_STEP }} or it's already enabled"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,32 @@
+{
+  "name": "copilot-bootcamp-session-5",
+  "version": "1.0.0",
+  "description": "AI Accelerated Engineering Bootcamp - Session 5: Agentic Development",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
+    "start:frontend": "npm run start --workspace=frontend",
+    "start:backend": "npm run start --workspace=backend",
+    "test": "npm run test:frontend && npm run test:backend",
+    "test:frontend": "npm run test --workspace=frontend",
+    "test:backend": "npm run test --workspace=backend",
+    "lint": "npm run lint:frontend && npm run lint:backend",
+    "lint:frontend": "npm run lint --workspace=frontend",
+    "lint:backend": "npm run lint --workspace=backend"
+  },
+  "keywords": [
+    "copilot",
+    "bootcamp",
+    "ai",
+    "tdd",
+    "agentic-development"
+  ],
+  "author": "Slalom",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
