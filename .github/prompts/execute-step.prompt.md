@@ -1,5 +1,6 @@
 ---
 description: "Execute instructions from the current GitHub Issue step"
+mode: agent
 agent: tdd-developer
 tools:
   - search

@@ -66,7 +66,7 @@ if [ ${#ERRORS[@]} -eq 0 ]; then
   SCOPE=""
   if echo "$CHANGED_FILES" | grep -qE '\.(test|spec)\.(js|jsx|ts|tsx)$'; then
     TYPE="test"
-  elif echo "$CHANGED_FILES" | grep -qE '^(src|frontend|backend)/.*\.(js|jsx|ts|tsx)$'; then
+  elif echo "$CHANGED_FILES" | grep -qE '^(src|frontend|backend|packages/frontend|packages/backend)/.*\.(js|jsx|ts|tsx)$'; then
     if echo "$CHANGED_FILES" | grep -qE '(feature|feat)'; then
       TYPE="feat"
     else

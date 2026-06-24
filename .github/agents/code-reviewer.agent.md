@@ -5,7 +5,7 @@ description: >
   Analyzes ESLint/compilation errors, categorizes issues for efficient batch fixing,
   suggests idiomatic JavaScript/React patterns, and guides toward clean, maintainable code.
   Works alongside tdd-developer — handles linting and quality concerns separately from TDD cycles.
-model: claude-sonnet-4-5
+model: Claude Sonnet 4.5 (copilot)
 tools:
   - search
   - read
@@ -197,8 +197,8 @@ Only move to the next category when the current one no longer appears in the out
 After all lint fixes are applied, run the full test suite:
 
 ```bash
-cd backend && npm test
-cd frontend && npm test
+npm run test:backend
+npm run test:frontend
 ```
 
 > ✅ All tests that were passing before must still pass after lint fixes.

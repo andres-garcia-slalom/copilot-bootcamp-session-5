@@ -1,5 +1,6 @@
 ---
 description: "Validate that all success criteria for the current step are met"
+mode: agent
 agent: code-reviewer
 tools:
   - search
@@ -34,7 +35,7 @@ You are running in **code-reviewer** mode. Systematically verify every success c
 
 5. **Check each criterion** against the current workspace:
    - File existence: use `ls` or `find`
-   - Test status: `cd backend && npm test` / `cd frontend && npm test`
+   - Test status: `npm run test:backend` / `npm run test:frontend`
    - Lint status: `bash scripts/lint-and-review.sh`
    - Git state: `git log --oneline -5` and `git branch`
 

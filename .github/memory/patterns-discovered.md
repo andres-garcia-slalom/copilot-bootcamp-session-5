@@ -44,5 +44,5 @@ async function getTodos() {
 }
 ```
 
-**Related Files**: `backend/services/todoService.js`, `backend/routes/todos.js`
+**Related Files**: `packages/backend/src/app.js`, `packages/backend/__tests__/app.test.js`
 **Discovered**: 2026-06-24

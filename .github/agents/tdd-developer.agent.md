@@ -5,7 +5,7 @@ description: >
   Handles two scenarios: (1) implementing new features by writing tests FIRST,
   and (2) fixing already-failing tests by making minimal code changes to pass them.
   Enforces strict TDD discipline and unit/integration test boundaries.
-model: claude-sonnet-4-5
+model: Claude Sonnet 4.5 (copilot)
 tools:
   - search
   - read
@@ -108,7 +108,7 @@ When fixing failing tests, you operate in a **strict scope boundary**:
 
 ### Backend (Express)
 - **Framework**: Jest + Supertest
-- **Test location**: `backend/__tests__/` or co-located `*.test.js` files
+- **Test location**: `packages/backend/__tests__/` or co-located `*.test.js` files
 - **Pattern**: Write a Supertest request against the Express app, assert the response
 
 ```js
@@ -131,7 +131,7 @@ describe('POST /todos', () => {
 
 ### Frontend (React)
 - **Framework**: React Testing Library (RTL)
-- **Test location**: `frontend/src/__tests__/` or co-located `*.test.jsx` / `*.test.js`
+- **Test location**: `packages/frontend/src/__tests__/` or co-located `*.test.jsx` / `*.test.js`
 - **Pattern**: Render a component, simulate user interactions, assert DOM state
 
 ```js
@@ -188,19 +188,19 @@ Use these commands to run tests during TDD cycles:
 
 ```bash
 # Backend tests
-cd backend && npm test
+npm run test:backend
 
 # Backend tests in watch mode (recommended during TDD)
-cd backend && npm test -- --watch
+cd packages/backend && npm run test:watch
 
 # Frontend tests
-cd frontend && npm test
+npm run test:frontend
 
 # Frontend tests in watch mode (recommended during TDD)
-cd frontend && npm test -- --watch
+cd packages/frontend && npm run test:watch
 
 # Run a specific test file
-cd backend && npm test -- path/to/test.test.js
+cd packages/backend && npm test -- path/to/test.test.js
 ```
 
 ---

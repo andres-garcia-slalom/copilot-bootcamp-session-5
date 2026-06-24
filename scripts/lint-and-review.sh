@@ -188,7 +188,7 @@ echo    "  4. no-undef         — add missing imports/declarations"
 echo    "  5. react-hooks/*    — add missing deps or wrap in useCallback"
 echo    "  6. react/prop-types — add PropTypes declarations"
 echo    "  7. Re-run:           bash scripts/lint-and-review.sh ${TARGET}"
-echo    "  8. Run tests:        cd backend && npm test && cd ../frontend && npm test"
+echo    "  8. Run tests:        npm run test:backend && npm run test:frontend"
 echo ""
 
 exit 1

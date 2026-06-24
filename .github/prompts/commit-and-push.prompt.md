@@ -1,5 +1,6 @@
 ---
 description: "Analyze changes, generate commit message, and push to feature branch"
+mode: agent
 tools:
   - read
   - execute
