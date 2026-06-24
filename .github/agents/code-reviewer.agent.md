@@ -35,39 +35,52 @@ You are a systematic code quality guide for a full-stack TODO application (React
 
 ## Systematic Lint Resolution Workflow
 
-### Step 1: Run the Linter and Capture Full Output
+### Step 1: Run the Linter via the Project Script
 
-Always start by running the linter and reading the **complete** output before touching any code.
+**Always use `scripts/lint-and-review.sh`** as the entry point — it suppresses success noise, collects all errors without stopping, and prints a consolidated fix-plan at the end. This keeps output clean and token-efficient.
 
 ```bash
-# Backend
-cd backend && npm run lint
+# Lint both backend and frontend (default)
+bash scripts/lint-and-review.sh
 
-# Frontend
-cd frontend && npm run lint
+# Lint a single target
+bash scripts/lint-and-review.sh backend
+bash scripts/lint-and-review.sh frontend
 
-# Or from root if a combined script exists
-npm run lint
+# Auto-fix safe formatting issues first, then lint
+bash scripts/lint-and-review.sh fix
+bash scripts/lint-and-review.sh backend fix
+bash scripts/lint-and-review.sh frontend fix
 ```
 
-> ⚠️ Never fix issues one-by-one without first seeing the full picture. Partial fixes can mask related issues or introduce new ones.
+> ⚠️ Only fall back to `npx eslint . --format=compact` directly if the script is unavailable.
+> Never run raw `npm run lint` — it produces verbose output that includes success noise.
+
+The script output will show a consolidated table like:
+```
+  [Backend]   [3]   Unused Variables          (no-unused-vars)
+  [Backend]   [2]   Console Statements        (no-console)
+  [Frontend]  [1]   Missing PropTypes         (react/prop-types)
+```
+
+Use this table as your fix plan for the session. Do not re-run lint until a full category is resolved.
 
 ---
 
 ### Step 2: Categorize Issues by Type
 
-Group errors and warnings by rule name before fixing anything. This enables batch fixing and reveals patterns.
+The script already categorizes issues. Use its output directly — no manual grouping needed.
 
-**Common ESLint categories to look for:**
+If you need to understand a rule, refer to this reference:
 
 | Category | Rules | Fix Strategy |
 |----------|-------|-------------|
 | **Unused variables** | `no-unused-vars` | Remove or use the variable; check if it's needed in tests |
 | **Console statements** | `no-console` | Replace with proper logging or remove debug logs |
 | **Undefined variables** | `no-undef` | Add missing imports/declarations |
-| **Semicolons** | `semi` | Auto-fixable with `eslint --fix` |
-| **Quotes** | `quotes` | Auto-fixable with `eslint --fix` |
-| **Spacing/formatting** | `indent`, `space-before-function-paren` | Auto-fixable with `eslint --fix` |
+| **Semicolons** | `semi` | Auto-fixable — use `fix` mode |
+| **Quotes** | `quotes` | Auto-fixable — use `fix` mode |
+| **Spacing/formatting** | `indent`, `space-before-function-paren` | Auto-fixable — use `fix` mode |
 | **React hooks** | `react-hooks/rules-of-hooks`, `react-hooks/exhaustive-deps` | Requires careful manual fix |
 | **Prop types** | `react/prop-types` | Add PropTypes declarations |
 | **Import order** | `import/order` | Reorder imports |
@@ -79,20 +92,11 @@ Group errors and warnings by rule name before fixing anything. This enables batc
 
 Fix issues in this order to avoid cascading problems:
 
-1. **Auto-fixable formatting** (run `eslint --fix` first — safe, fast, zero risk)
-2. **Unused imports** (remove dead code at the top — clean slate)
-3. **Undefined variables** (fix missing declarations before logic issues)
-4. **Logic-affecting rules** (hooks, prop-types, no-console — require thought)
-5. **Complexity/structure** (refactor last, after simpler issues are resolved)
-
-```bash
-# Run auto-fix first — handles formatting safely
-cd backend && npx eslint . --fix
-cd frontend && npx eslint . --fix
-
-# Then re-run to see what remains
-npm run lint
-```
+1. **Auto-fixable formatting** — run `bash scripts/lint-and-review.sh fix` first (safe, fast, zero risk)
+2. **Unused imports** — remove dead code at the top (clean slate)
+3. **Undefined variables** — fix missing declarations before logic issues
+4. **Logic-affecting rules** — hooks, prop-types, no-console (require thought)
+5. **Complexity/structure** — refactor last, after simpler issues are resolved
 
 ---
 
@@ -178,25 +182,22 @@ TodoItem.propTypes = {
 
 ### Step 5: Re-validate After Each Category
 
-After fixing each category of issues, re-run the linter to confirm the fix worked and no new issues appeared.
+After fixing a full category, re-run the script to confirm the fix worked and no new issues appeared:
 
 ```bash
-npm run lint
+bash scripts/lint-and-review.sh
 ```
 
-Only move to the next category when the current one is clean.
+Only move to the next category when the current one no longer appears in the output table.
 
 ---
 
 ### Step 6: Run Tests to Confirm No Regressions
 
-After all lint fixes are applied, run the full test suite.
+After all lint fixes are applied, run the full test suite:
 
 ```bash
-# Backend
 cd backend && npm test
-
-# Frontend
 cd frontend && npm test
 ```
 
@@ -302,26 +303,6 @@ function useTodos() {
 
 ---
 
-## Running Lint Commands
-
-```bash
-# Run ESLint (backend)
-cd backend && npm run lint
-
-# Run ESLint (frontend)
-cd frontend && npm run lint
-
-# Auto-fix safe issues
-cd backend && npx eslint . --fix
-cd frontend && npx eslint . --fix
-
-# Run tests after lint fixes
-cd backend && npm test
-cd frontend && npm test
-```
-
----
-
 ## Memory Integration
 
 Before starting any review session:
@@ -331,7 +312,7 @@ Before starting any review session:
 3. **Read** `.github/memory/session-notes.md` — understand prior sessions to avoid re-solving known issues.
 
 During the session, update `scratch/working-notes.md` with:
-- Categories of issues found
+- Categories of issues found (copy the script's output table)
 - Which fixes were straightforward vs. required judgment
 - Any new anti-patterns worth documenting
 
