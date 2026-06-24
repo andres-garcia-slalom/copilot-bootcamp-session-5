@@ -10,10 +10,10 @@ app.use(express.json());
 
 // In-memory data store for TODOs
 // INTENTIONAL ISSUE: This should be initialized as an empty array
-let todos = null;
+let todos = [];
 
 // INTENTIONAL ISSUE: Missing counter for ID generation
-// let nextId = 1;
+let nextId = 1;
 
 // INTENTIONAL LINT VIOLATION (for Step 5-2): Unused variable should be removed or used
 const unusedDebugFlag = true;
@@ -36,7 +36,21 @@ app.post('/api/todos', (req, res) => {
   // Should validate that title is provided
   // Should generate an ID
   // Should create todo with: { id, title, completed: false, createdAt: timestamp }
-  res.status(501).json({ error: 'Not implemented' });
+  const { title } = req.body;
+
+  if (!title || title.trim() === '') {
+    return res.status(400).json({ error: 'Title is required' });
+  }
+
+  const newTodo = {
+    id: nextId++,
+    title,
+    completed: false,
+    createdAt: new Date().toISOString(),
+  };
+
+  todos.push(newTodo);
+  res.status(201).json(newTodo);
 });
 
 // PUT /api/todos/:id - Update a todo
@@ -46,7 +60,19 @@ app.put('/api/todos/:id', (req, res) => {
   // Should find todo by id
   // Should update title if provided
   // Should return 404 if not found
-  res.status(501).json({ error: 'Not implemented' });
+  const id = parseInt(req.params.id);
+  const todo = todos.find((t) => t.id === id);
+
+  if (!todo) {
+    return res.status(404).json({ error: 'Todo not found' });
+  }
+
+  const { title } = req.body;
+  if (title !== undefined) {
+    todo.title = title;
+  }
+
+  res.json(todo);
 });
 
 // PATCH /api/todos/:id/toggle - Toggle todo completion status
@@ -60,7 +86,7 @@ app.patch('/api/todos/:id/toggle', (req, res) => {
   }
 
   // INTENTIONAL BUG: This always sets to true instead of toggling
-  todo.completed = true;
+  todo.completed = !todo.completed;
 
   res.json(todo);
 });
@@ -71,7 +97,15 @@ app.delete('/api/todos/:id', (req, res) => {
   // TODO: Implement this endpoint
   // Should find and remove todo by id
   // Should return 404 if not found
-  res.status(501).json({ error: 'Not implemented' });
+  const id = parseInt(req.params.id);
+  const index = todos.findIndex((t) => t.id === id);
+
+  if (index === -1) {
+    return res.status(404).json({ error: 'Todo not found' });
+  }
+
+  todos.splice(index, 1);
+  res.json({ message: 'Todo deleted' });
 });
 
 // INTENTIONAL ISSUE: Missing error handling middleware
