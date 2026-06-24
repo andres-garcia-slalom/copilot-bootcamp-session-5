@@ -1,0 +1,3 @@
+# Ignore all files in this directory.
+# scratch/ is for ephemeral active-session notes only — never commit them.
+*
